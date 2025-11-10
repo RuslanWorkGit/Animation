@@ -18,9 +18,9 @@ struct RootView: View {
                 // Можна поставити свій SplashView/лого/чорний фон
                 Color.black.ignoresSafeArea()
             case .paywall:
-               PaywallView()
+                PaywallView(action: {print("hello")})
             case .onboarding:
-                EmptyView()
+                OnboardingFlow()
 //                OnboardingFlowViewFour()
             case .mainTabbar:
                 TabBarView()

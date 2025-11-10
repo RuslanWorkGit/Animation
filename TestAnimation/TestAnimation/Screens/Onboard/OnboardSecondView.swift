@@ -1,13 +1,14 @@
 //
-//  PaywallView.swift
+//  OnboardSecondView.swift
 //  TestAnimation
 //
-//  Created by Ruslan Liulka on 10.11.2025.
+//  Created by Ruslan Liulka on 11.11.2025.
 //
+
 
 import SwiftUI
 
-struct PaywallView: View {
+struct OnboardSecondView: View {
     let action: () -> Void
     private func handleCTA() {
 
@@ -17,7 +18,8 @@ struct PaywallView: View {
     
     var body: some View {
         
-       
+        
+        
         
         OnboardScaffoldNew(ctaTitle: "Continue", ctaAction: handleCTA, fixedWidth: 260) {
             
@@ -35,7 +37,7 @@ struct PaywallView: View {
                     Group {
                         
                         (
-                            Text("Paywall Screen 💸💸💸💸(On tap screen)").font(.system(size: 30, weight: .semibold))
+                            Text("Second Onboard Screen(On tap screen)").font(.system(size: 30, weight: .semibold))
 
                         )
                         .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
@@ -63,8 +65,4 @@ struct PaywallView: View {
         
         
     }
-}
-
-#Preview {
-    PaywallView(action: {print("L")})
 }

@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct TestAnimationApp: App {
+    
+    @StateObject var coordinator = AppCoordinator()
+    
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environmentObject(coordinator)
         }
     }
 }

@@ -19,7 +19,7 @@ final class AppCoordinator: ObservableObject {
     }
 
     
-    @Published var currentScreen: Screen = .boot
+    @Published var currentScreen: Screen = .mainTabbar
     @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
 //    @AppStorage("onb_last_shown_ts") private var onbLastShownTS: Double = 0
     
@@ -31,11 +31,11 @@ final class AppCoordinator: ObservableObject {
 //                self.currentScreen = .mainTabbar
 //                return
 //            }
-            if !hasSeenOnboarding /*|| self.shouldResurfaceOnboarding() */{
-                self.currentScreen = .onboarding
-            } else {
-                self.currentScreen = .paywall
-            }
+//            if !hasSeenOnboarding /*|| self.shouldResurfaceOnboarding() */{
+//                self.currentScreen = .onboarding
+//            } else {
+//                self.currentScreen = .paywall
+//            }
         }
     }
     
