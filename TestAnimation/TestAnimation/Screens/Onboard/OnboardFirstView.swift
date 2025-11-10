@@ -47,6 +47,9 @@ struct OnboardFirstView: View {
 
                     }
                     
+                    AnimatedHeroImage(name: "newImg", size: 150, delay: 0.5)
+                        .padding(.top, 8) // опційно
+                    
                                         
                     Spacer()
                     
@@ -202,6 +205,37 @@ extension View {
         )
     }
 }
+
+
+struct AnimatedHeroImage: View {
+    let name: String
+    var size: CGFloat = 150
+    var delay: Double = 0.5   // ⟵ керування затримкою
+
+    @State private var animateIn = false
+
+    var body: some View {
+        Image(name)
+        //.resizable()
+           // .scaledToFit()
+            .frame(width: size, height: size)
+            // Початковий стан: збільшено, повернуто, заблюрено
+            .scaleEffect(animateIn ? 1.0 : 1.35)
+            .rotationEffect(.degrees(animateIn ? 0 : 45))
+            .blur(radius: animateIn ? 0 : 14, opaque: true)
+            .opacity(animateIn ? 1 : 0.95)
+            // Узгоджена пружинна анімація
+            .animation(.spring(response: 0.9, dampingFraction: 0.78, blendDuration: 0.2),
+                       value: animateIn)
+            .onAppear {
+                // Затримка перед запуском анімації
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    animateIn = true
+                }
+            }
+    }
+}
+
 #Preview {
     OnboardFirstView(action: {print("N")})
 }
