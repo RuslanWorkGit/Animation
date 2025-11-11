@@ -32,7 +32,7 @@ struct OnboardSecondView: View {
             ScrollView{
                 VStack {
                     
-                    Spacer(minLength: 300)
+                    Spacer(minLength: 200)
                     
                     Group {
                         
@@ -47,6 +47,19 @@ struct OnboardSecondView: View {
                         .padding(.bottom, 12)
 
                     }
+                    
+                    AnimatedHeroImage(
+                        name: "newImg",
+                        fromSize: 250,
+                        toSize: 150,
+                        startDelay: 0.5,
+                        transformTime: 0.6,
+                        blurTime: 0.35,
+                        blurRadius: 14,
+                        //showCard: true,       // залиш верхню «картку», щоб було чітко видно обертання блоку
+                        cornerRadius: 16
+                    )
+                        .padding(.top, 8) // опційно
                     
                                         
                     Spacer()

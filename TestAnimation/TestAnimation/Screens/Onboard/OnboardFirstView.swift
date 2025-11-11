@@ -47,7 +47,28 @@ struct OnboardFirstView: View {
 
                     }
                     
-                    AnimatedHeroImage(name: "newImg", size: 150, delay: 0.5)
+
+//                    
+//                    AnimatedHeroImage(
+//                        name: "newImg",
+//                        fromSize: 250,
+//                        toSize: 150,
+//                        startDelay: 0.5,
+//                        transformTime: 0.6,
+//                        blurTime: 0.35,
+//                        blurRadius: 14
+//                    )
+                    AnimatedHeroImage(
+                        name: "newImg",
+                        fromSize: 250,
+                        toSize: 150,
+                        startDelay: 0.5,
+                        transformTime: 0.6,
+                        blurTime: 0.35,
+                        blurRadius: 14,
+                        //showCard: true,       // залиш верхню «картку», щоб було чітко видно обертання блоку
+                        cornerRadius: 16
+                    )
                         .padding(.top, 8) // опційно
                     
                                         
@@ -68,6 +89,63 @@ struct OnboardFirstView: View {
         
     }
 }
+
+struct AnimatedHeroImage: View {
+    let name: String
+    // Геометрія та таймінги
+    var fromSize: CGFloat = 250
+    var toSize: CGFloat = 150
+    var startDelay: Double = 0.5
+    var transformTime: Double = 0.9      // зробив довше, за потреби підкрути
+    var blurTime: Double = 0.45
+    var blurRadius: CGFloat = 14
+
+    var cornerRadius: CGFloat = 16
+    var showShadow: Bool = true
+
+    @State private var animateTransform = false   // поворот + зменшення (контейнер)
+    @State private var removeBlur = false         // зняття блюра (картинка)
+
+    var body: some View {
+        let containerSize = animateTransform ? toSize : fromSize
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+
+        ZStack {
+            // Фото на весь блок
+            Image(name)
+                .resizable()
+                .scaledToFill()
+                //.blur(radius: removeBlur ? 0 : blurRadius, opaque: true)
+                .animation(.easeOut(duration: blurTime), value: removeBlur)
+        }
+        .opacity(animateTransform ? 1 : 0)
+        .frame(width: containerSize, height: containerSize)
+        .clipShape(shape) // обрізаємо фото по радіусу картки
+        .shadow(color: .black.opacity(showShadow ? 0.08 : 0), radius: 12, x: 0, y: 6)
+        .rotationEffect(.degrees(animateTransform ? 0 : 12)) // обертаємо весь блок
+        .blur(radius: animateTransform ? 0 : 20)
+
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + startDelay) {
+                // Фаза 1: поворот + зменшення 250 → 150
+                withAnimation(.spring(response: 1.4, dampingFraction: 0.88, blendDuration: 0.2)) {
+                    animateTransform = true
+                }
+                // Фаза 2: коли майже завершилось — прибираємо блюр
+                DispatchQueue.main.asyncAfter(deadline: .now() + transformTime) {
+                    withAnimation(.easeOut(duration: blurTime)) {
+                        removeBlur = true
+                    }
+                }
+            }
+        }
+        .onDisappear {
+            animateTransform = false
+            removeBlur = false
+        }
+    }
+}
+
 
 struct PillButtonNew: View {
     let title: String
@@ -206,35 +284,35 @@ extension View {
     }
 }
 
-
-struct AnimatedHeroImage: View {
-    let name: String
-    var size: CGFloat = 150
-    var delay: Double = 0.5   // ⟵ керування затримкою
-
-    @State private var animateIn = false
-
-    var body: some View {
-        Image(name)
-        //.resizable()
-           // .scaledToFit()
-            .frame(width: size, height: size)
-            // Початковий стан: збільшено, повернуто, заблюрено
-            .scaleEffect(animateIn ? 1.0 : 1.35)
-            .rotationEffect(.degrees(animateIn ? 0 : 45))
-            .blur(radius: animateIn ? 0 : 14, opaque: true)
-            .opacity(animateIn ? 1 : 0.95)
-            // Узгоджена пружинна анімація
-            .animation(.spring(response: 0.9, dampingFraction: 0.78, blendDuration: 0.2),
-                       value: animateIn)
-            .onAppear {
-                // Затримка перед запуском анімації
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    animateIn = true
-                }
-            }
-    }
-}
+//
+//struct AnimatedHeroImage: View {
+//    let name: String
+//    var size: CGFloat = 150
+//    var delay: Double = 0.5   // ⟵ керування затримкою
+//
+//    @State private var animateIn = false
+//
+//    var body: some View {
+//        Image(name)
+//            .resizable()
+//            .scaledToFit()
+//            .frame(width: size, height: size)
+//            // Початковий стан: збільшено, повернуто, заблюрено
+//            .scaleEffect(animateIn ? 1.0 : 1.35)
+//            .rotationEffect(.degrees(animateIn ? 0 : 45))
+//            .blur(radius: animateIn ? 0 : 14, opaque: true)
+//            .opacity(animateIn ? 1 : 0.95)
+//            // Узгоджена пружинна анімація
+//            .animation(.spring(response: 0.9, dampingFraction: 0.78, blendDuration: 0.2),
+//                       value: animateIn)
+//            .onAppear {
+//                // Затримка перед запуском анімації
+//                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+//                    animateIn = true
+//                }
+//            }
+//    }
+//}
 
 #Preview {
     OnboardFirstView(action: {print("N")})
