@@ -14,6 +14,24 @@ struct OnboardFirstView: View {
         action()
     }
 
+    @State private var showFirst = true
+        @State private var fadeOutFirst = false
+        @State private var secondKey = UUID()   // щоб перезапускати анімацію другої
+
+        private let fadeOutDuration: Double = 0.35
+    
+    private func showNextImage() {
+            guard showFirst else { return }
+            // 1) Гасимо перше зображення
+            withAnimation(.easeOut(duration: fadeOutDuration)) {
+                fadeOutFirst = true
+            }
+            // 2) Після згасання показуємо друге (воно само анімується на onAppear)
+            DispatchQueue.main.asyncAfter(deadline: .now() + fadeOutDuration) {
+                showFirst = false
+                secondKey = UUID() // форс перезапуску @State всередині AnimatedHeroImage
+            }
+        }
     
     var body: some View {
         
@@ -31,7 +49,10 @@ struct OnboardFirstView: View {
             ScrollView{
                 VStack {
                     
-                    Spacer(minLength: 300)
+                    Spacer(minLength: 200)
+                    
+                    PillButtonNew(title: "Показати наступне фото", action: showNextImage, arrow: true)
+                                            .padding(.top, 16)
                     
                     Group {
                         
@@ -49,6 +70,7 @@ struct OnboardFirstView: View {
                     
 
 //                    
+//
 //                    AnimatedHeroImage(
 //                        name: "newImg",
 //                        fromSize: 250,
@@ -56,20 +78,42 @@ struct OnboardFirstView: View {
 //                        startDelay: 0.5,
 //                        transformTime: 0.6,
 //                        blurTime: 0.35,
-//                        blurRadius: 14
+//                        blurRadius: 14,
+//                        //showCard: true,       // залиш верхню «картку», щоб було чітко видно обертання блоку
+//                        cornerRadius: 16
 //                    )
-                    AnimatedHeroImage(
-                        name: "newImg",
-                        fromSize: 250,
-                        toSize: 150,
-                        startDelay: 0.5,
-                        transformTime: 0.6,
-                        blurTime: 0.35,
-                        blurRadius: 14,
-                        //showCard: true,       // залиш верхню «картку», щоб було чітко видно обертання блоку
-                        cornerRadius: 16
-                    )
-                        .padding(.top, 8) // опційно
+//                        .padding(.top, 8) // опційно
+                    
+                    ZStack {
+                                            if showFirst {
+                                                AnimatedHeroImage(
+                                                    name: "newImg",
+                                                    fromSize: 250,
+                                                    toSize: 150,
+                                                    startDelay: 0.5,
+                                                    transformTime: 0.6,
+                                                    blurTime: 0.35,
+                                                    blurRadius: 14,
+                                                    cornerRadius: 16
+                                                )
+                                                .opacity(fadeOutFirst ? 0 : 1) // плавне зникнення першого
+                                            } else {
+                                                AnimatedHeroImage(
+                                                    name: "newImgTwo",
+                                                    fromSize: 250,
+                                                    toSize: 150,
+                                                    startDelay: 0.0,   // з'являємось відразу після fade-out
+                                                    transformTime: 0.6,
+                                                    blurTime: 0.35,
+                                                    blurRadius: 14,
+                                                    cornerRadius: 16
+                                                )
+                                                .id(secondKey) // гарантує onAppear і перезапуск анімації
+                                            }
+                                        }
+                                        .padding(.top, 8)
+                    
+                    
                     
                                         
                     Spacer()
@@ -96,7 +140,7 @@ struct AnimatedHeroImage: View {
     var fromSize: CGFloat = 250
     var toSize: CGFloat = 150
     var startDelay: Double = 0.5
-    var transformTime: Double = 0.9      // зробив довше, за потреби підкрути
+    var transformTime: Double = 0.9
     var blurTime: Double = 0.45
     var blurRadius: CGFloat = 14
 
@@ -111,16 +155,15 @@ struct AnimatedHeroImage: View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
 
         ZStack {
-            // Фото на весь блок
             Image(name)
                 .resizable()
-                .scaledToFill()
-                //.blur(radius: removeBlur ? 0 : blurRadius, opaque: true)
+                .scaledToFill() // фото заповнює всю картку
+            //.blur(radius: removeBlur ? 0 : blurRadius, opaque: true)
                 .animation(.easeOut(duration: blurTime), value: removeBlur)
         }
         .opacity(animateTransform ? 1 : 0)
         .frame(width: containerSize, height: containerSize)
-        .clipShape(shape) // обрізаємо фото по радіусу картки
+        .clipShape(shape)
         .shadow(color: .black.opacity(showShadow ? 0.08 : 0), radius: 12, x: 0, y: 6)
         .rotationEffect(.degrees(animateTransform ? 0 : 12)) // обертаємо весь блок
         .blur(radius: animateTransform ? 0 : 20)
