@@ -9,131 +9,86 @@ import SwiftUI
 
 struct OnboardFirstView: View {
     let action: () -> Void
-    private func handleCTA() {
+    private func handleCTA() { action() }
 
-        action()
+    //  Джерело істини по картинках
+    private let images = ["newImg", "newImgTwo", "newImgThree", "newImgFour"]
+
+    //  Стан
+    @State private var currentIndex = 0
+    @State private var fadingOut = false
+    @State private var isTransitioning = false
+    @State private var imageKey = UUID()     // перезапуск анімації для нового кадру
+
+    private let fadeOutDuration: Double = 0.35
+    private let wrap = true                  // зробити цикл по колу
+
+    private func showNextImage() {
+        guard !isTransitioning else { return }
+        guard wrap || currentIndex < images.count - 1 else { return }
+
+        isTransitioning = true
+        // 1) Гасимо поточне зображення
+        withAnimation(.easeOut(duration: fadeOutDuration)) {
+            fadingOut = true
+        }
+        // 2) Після згасання — підміняємо індекс та перезапускаємо в’ю (щоб onAppear спрацював)
+        DispatchQueue.main.asyncAfter(deadline: .now() + fadeOutDuration) {
+            let next = (currentIndex + 1) % images.count
+            currentIndex = next
+            imageKey = UUID()
+            fadingOut = false   // повертаємо непрозорість БЕЗ анімації (миттєво)
+            isTransitioning = false
+        }
     }
 
-    @State private var showFirst = true
-        @State private var fadeOutFirst = false
-        @State private var secondKey = UUID()   // щоб перезапускати анімацію другої
-
-        private let fadeOutDuration: Double = 0.35
-    
-    private func showNextImage() {
-            guard showFirst else { return }
-            // 1) Гасимо перше зображення
-            withAnimation(.easeOut(duration: fadeOutDuration)) {
-                fadeOutFirst = true
-            }
-            // 2) Після згасання показуємо друге (воно само анімується на onAppear)
-            DispatchQueue.main.asyncAfter(deadline: .now() + fadeOutDuration) {
-                showFirst = false
-                secondKey = UUID() // форс перезапуску @State всередині AnimatedHeroImage
-            }
-        }
-    
     var body: some View {
-        
-        
-        
-        
         OnboardScaffoldNew(ctaTitle: "Continue", ctaAction: handleCTA, fixedWidth: 260) {
-            
             LinearGradient(gradient: Gradient(stops: [
-                .init(color: Color(red: 255/255, green: 255/255, blue: 255/255).opacity(1), location: 0),
-                .init(color: Color(red: 222/255, green: 233/255, blue: 255/255).opacity(1), location: 0.5),
-                .init(color: Color(red: 255/255, green: 255/255, blue: 255/255).opacity(1), location: 1.0)
+                .init(color: .white, location: 0),
+                .init(color: Color(red: 222/255, green: 233/255, blue: 255/255), location: 0.5),
+                .init(color: .white, location: 1.0)
             ]), startPoint: .top, endPoint: .bottom)
             .ignoresSafeArea()
-            ScrollView{
-                VStack {
-                    
-                    Spacer(minLength: 200)
-                    
-                    PillButtonNew(title: "Показати наступне фото", action: showNextImage, arrow: true)
-                                            .padding(.top, 16)
-                    
-                    Group {
-                        
-                        (
-                            Text("First Onboard Screen(On tap screen)").font(.system(size: 30, weight: .semibold))
 
-                        )
+            ScrollView {
+                VStack {
+                    Spacer(minLength: 200)
+
+                    PillButtonNew(title: "Показати наступне фото", action: showNextImage, arrow: true)
+                        .padding(.top, 16)
+
+                    Text("First Onboard Screen(On tap screen)")
+                        .font(.system(size: 30, weight: .semibold))
                         .foregroundStyle(Color(red: 17/255, green: 17/255, blue: 17/255))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                         .padding(.top, 16)
                         .padding(.bottom, 12)
 
-                    }
-                    
+                    // 🔸 Один компонент, що підміняється по .id
+                    AnimatedHeroImage(
+                        name: images[currentIndex],
+                        fromSize: 250,
+                        toSize: 150,
+                        startDelay: currentIndex == 0 ? 0.5 : 0.0, // перший — із затримкою, інші — ні
+                        transformTime: 0.6,
+                        blurTime: 0.35,
+                        blurRadius: 14,
+                        cornerRadius: 16
+                    )
+                    .id(imageKey)
+                    .opacity(fadingOut ? 0 : 1) // fade-out лише на поточному перед підміною
+                    .padding(.top, 8)
 
-//                    
-//
-//                    AnimatedHeroImage(
-//                        name: "newImg",
-//                        fromSize: 250,
-//                        toSize: 150,
-//                        startDelay: 0.5,
-//                        transformTime: 0.6,
-//                        blurTime: 0.35,
-//                        blurRadius: 14,
-//                        //showCard: true,       // залиш верхню «картку», щоб було чітко видно обертання блоку
-//                        cornerRadius: 16
-//                    )
-//                        .padding(.top, 8) // опційно
-                    
-                    ZStack {
-                                            if showFirst {
-                                                AnimatedHeroImage(
-                                                    name: "newImg",
-                                                    fromSize: 250,
-                                                    toSize: 150,
-                                                    startDelay: 0.5,
-                                                    transformTime: 0.6,
-                                                    blurTime: 0.35,
-                                                    blurRadius: 14,
-                                                    cornerRadius: 16
-                                                )
-                                                .opacity(fadeOutFirst ? 0 : 1) // плавне зникнення першого
-                                            } else {
-                                                AnimatedHeroImage(
-                                                    name: "newImgTwo",
-                                                    fromSize: 250,
-                                                    toSize: 150,
-                                                    startDelay: 0.0,   // з'являємось відразу після fade-out
-                                                    transformTime: 0.6,
-                                                    blurTime: 0.35,
-                                                    blurRadius: 14,
-                                                    cornerRadius: 16
-                                                )
-                                                .id(secondKey) // гарантує onAppear і перезапуск анімації
-                                            }
-                                        }
-                                        .padding(.top, 8)
-                    
-                    
-                    
-                                        
                     Spacer()
-                    
-                    
                 }
                 .padding(.horizontal, 32)
             }
         }
-        .onTapGesture {
-            handleCTA()
-        }
-        //        .onAppear {
-        //            tempSelected = ChooseDevice(rawValue: selectedDeviceRaw) ?? .iphone
-        //        }
-        
-        
+        .onTapGesture { handleCTA() }
     }
 }
-
 struct AnimatedHeroImage: View {
     let name: String
     // Геометрія та таймінги
@@ -143,17 +98,17 @@ struct AnimatedHeroImage: View {
     var transformTime: Double = 0.9
     var blurTime: Double = 0.45
     var blurRadius: CGFloat = 14
-
+    
     var cornerRadius: CGFloat = 16
     var showShadow: Bool = true
-
+    
     @State private var animateTransform = false   // поворот + зменшення (контейнер)
     @State private var removeBlur = false         // зняття блюра (картинка)
-
+    
     var body: some View {
         let containerSize = animateTransform ? toSize : fromSize
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-
+        
         ZStack {
             Image(name)
                 .resizable()
@@ -167,7 +122,7 @@ struct AnimatedHeroImage: View {
         .shadow(color: .black.opacity(showShadow ? 0.08 : 0), radius: 12, x: 0, y: 6)
         .rotationEffect(.degrees(animateTransform ? 0 : 12)) // обертаємо весь блок
         .blur(radius: animateTransform ? 0 : 20)
-
+        
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + startDelay) {
                 // Фаза 1: поворот + зменшення 250 → 150
@@ -246,10 +201,10 @@ struct OnboardScaffoldNew<Content: View>: View {
             .safeAreaInset(edge: .bottom) {
                 HStack { // гарантує однакову геометрію
                     Spacer()
-//                    PillButtonNew(title: ctaTitle, action: ctaAction, arrow: true)
-//                        .padding(.horizontal, 32)
-//                        .frame(minHeight: 52) // ключ
-////                        .frame(width: fixedWidth)
+                    //                    PillButtonNew(title: ctaTitle, action: ctaAction, arrow: true)
+                    //                        .padding(.horizontal, 32)
+                    //                        .frame(minHeight: 52) // ключ
+                    ////                        .frame(width: fixedWidth)
                     Spacer()
                 }
                 
@@ -270,10 +225,10 @@ struct SelectableChipOne: View {
         } label: {
             HStack(spacing: 12) {
                 Image(isSelected ? "fillCheckmark" : "emptyCheckmark")
-//                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-//                    .imageScale(.large)
-//                    .font(.system(size: 18, weight: .semibold))
-//                    .foregroundStyle(isSelected ? Color(red: 81 / 255, green: 132 / 255, blue: 234 / 255) : Color(red: 195 / 255, green: 198 / 255, blue: 205 / 255))
+                //                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                //                    .imageScale(.large)
+                //                    .font(.system(size: 18, weight: .semibold))
+                //                    .foregroundStyle(isSelected ? Color(red: 81 / 255, green: 132 / 255, blue: 234 / 255) : Color(red: 195 / 255, green: 198 / 255, blue: 205 / 255))
                 
                 Text(title)
                     .font(.system(size: 16, weight: .semibold))
