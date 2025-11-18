@@ -14,8 +14,9 @@ struct TestAnimationApp: App {
     
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(coordinator)
+            NewCardsView()
+//            RootView()
+//                .environmentObject(coordinator)
         }
     }
 }
